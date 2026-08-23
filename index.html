@@ -1,384 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aishwarya Residency - Portal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aishwarya Residency Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- jsPDF for Receipt Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-6">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-16">
 
-  <div class="max-w-6xl mx-auto space-y-6">
-    <!-- Header -->
-    <header class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-900">Aishwarya Residency</h1>
-        <p class="text-sm text-slate-500">Society Income & Expenditure Ledger</p>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="openModal('incomeModal')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-sm transition">
-          + Record Income
-        </button>
-        <button onclick="openModal('expenseModal')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg text-sm transition">
-          + Record Expense
-        </button>
-      </div>
+    <!-- Header Banner with Building Photo -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="building.jpg" alt="Aishwarya Residency" class="w-12 h-14 object-cover rounded-lg border border-slate-200 shadow-sm flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=150'">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Aishwarya Residency</h1>
+                    <p class="text-xs text-slate-500 font-medium">Society Maintenance & Accounts</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openModal('incomeModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span>+ Income</span>
+                </button>
+                <button onclick="openModal('expenseModal')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                    <span>+ Expense</span>
+                </button>
+            </div>
+        </div>
     </header>
 
-    <!-- Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Net Balance</p>
-        <p id="netBalance" class="text-2xl font-bold text-slate-900 mt-1">₹ 0.00</p>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Income</p>
-        <p id="totalIncome" class="text-2xl font-bold text-emerald-600 mt-1">₹ 0.00</p>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Expenses</p>
-        <p id="totalExpense" class="text-2xl font-bold text-rose-600 mt-1">₹ 0.00</p>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-amber-200 bg-amber-50/50 shadow-sm cursor-pointer hover:bg-amber-50 transition" onclick="openModal('defaulterModal')">
-        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Pending Dues (This Month)</p>
-        <p id="pendingCount" class="text-2xl font-bold text-amber-700 mt-1">0 Flats</p>
-        <span class="text-xs text-amber-600 underline font-medium">Click to view list</span>
-      </div>
-    </div>
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- Ledger Table -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-slate-200 flex justify-between items-center">
-        <h2 class="font-bold text-slate-800">Transactions Ledger</h2>
-        <button onclick="loadData()" class="text-xs text-blue-600 hover:underline font-medium">Refresh Data</button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase border-b border-slate-200">
-            <tr>
-              <th class="p-3">Date</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Category</th>
-              <th class="p-3">Flat / Party</th>
-              <th class="p-3">Mode</th>
-              <th class="p-3 text-right">Amount</th>
-              <th class="p-3 text-center">Receipt</th>
-            </tr>
-          </thead>
-          <tbody id="transactionTable" class="divide-y divide-slate-100">
-            <tr>
-              <td colspan="7" class="p-4 text-center text-slate-400">Loading transactions...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Defaulter Modal -->
-  <div id="defaulterModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-slate-900">Unpaid Maintenance (Current Month)</h3>
-        <button onclick="closeModal('defaulterModal')" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-      </div>
-      <div id="defaulterList" class="divide-y divide-slate-100 max-h-60 overflow-y-auto">
-        <!-- Defaulters list will load dynamically -->
-      </div>
-      <div class="flex justify-end pt-2">
-        <button onclick="closeModal('defaulterModal')" class="px-4 py-2 bg-slate-800 text-white font-medium rounded-lg text-sm">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Income Modal -->
-  <div id="incomeModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-      <h3 class="text-lg font-bold text-slate-900">Record Member Payment</h3>
-      <form id="incomeForm" onsubmit="submitIncome(event)" class="space-y-3">
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Select Flat</label>
-          <select id="incomeFlat" required class="w-full border rounded-lg p-2 text-sm mt-1"></select>
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Category</label>
-          <select id="incomeCategory" class="w-full border rounded-lg p-2 text-sm mt-1">
-            <option value="Monthly Maintenance">Monthly Maintenance</option>
-            <option value="Parking Fee">Parking Fee</option>
-            <option value="Penalty / Fine">Penalty / Fine</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-semibold text-slate-600">Amount (₹)</label>
-            <input type="number" id="incomeAmount" required step="0.01" class="w-full border rounded-lg p-2 text-sm mt-1">
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-slate-600">Payment Mode</label>
-            <select id="incomeMode" class="w-full border rounded-lg p-2 text-sm mt-1">
-              <option value="UPI">UPI</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Cash">Cash</option>
-              <option value="Cheque">Cheque</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Payment Date</label>
-          <input type="date" id="incomeDate" required class="w-full border rounded-lg p-2 text-sm mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Notes (Optional)</label>
-          <input type="text" id="incomeNotes" class="w-full border rounded-lg p-2 text-sm mt-1">
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModal('incomeModal')" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg text-sm">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Expense Modal -->
-  <div id="expenseModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-      <h3 class="text-lg font-bold text-slate-900">Record Society Expense</h3>
-      <form id="expenseForm" onsubmit="submitExpense(event)" class="space-y-3">
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Paid To (Vendor / Person)</label>
-          <input type="text" id="expensePaidTo" required class="w-full border rounded-lg p-2 text-sm mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Category</label>
-          <select id="expenseCategory" class="w-full border rounded-lg p-2 text-sm mt-1">
-            <option value="Security Guard Salary">Security Guard Salary</option>
-            <option value="Cleaning & Housekeeping">Cleaning & Housekeeping</option>
-            <option value="Water Tanker">Water Tanker</option>
-            <option value="Electricity (Common Area)">Electricity (Common Area)</option>
-            <option value="Lift AMC / Maintenance">Lift AMC / Maintenance</option>
-            <option value="Plumbing / Electrical Repairs">Plumbing / Electrical Repairs</option>
-            <option value="Miscellaneous">Miscellaneous</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-semibold text-slate-600">Amount (₹)</label>
-            <input type="number" id="expenseAmount" required step="0.01" class="w-full border rounded-lg p-2 text-sm mt-1">
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-slate-600">Payment Mode</label>
-            <select id="expenseMode" class="w-full border rounded-lg p-2 text-sm mt-1">
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="UPI">UPI</option>
-              <option value="Cash">Cash</option>
-              <option value="Cheque">Cheque</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Payment Date</label>
-          <input type="date" id="expenseDate" required class="w-full border rounded-lg p-2 text-sm mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-slate-600">Notes (Optional)</label>
-          <input type="text" id="expenseNotes" class="w-full border rounded-lg p-2 text-sm mt-1">
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModal('expenseModal')" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-rose-600 text-white font-medium rounded-lg text-sm">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    const API_BASE = 'https://aishwarya-residency-api.onrender.com/api';
-    let currentTransactions = [];
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('incomeDate').value = today;
-    document.getElementById('expenseDate').value = today;
-
-    async function loadFlats() {
-      try {
-        const res = await fetch(`${API_BASE}/flats`);
-        const flats = await res.json();
-        const select = document.getElementById('incomeFlat');
-        select.innerHTML = flats.map(f => `<option value="${f.id}">${f.flat_number} - ${f.owner_name}</option>`).join('');
-      } catch (err) {
-        console.error('Error loading flats:', err);
-      }
-    }
-
-    async function loadDefaulters() {
-      try {
-        const res = await fetch(`${API_BASE}/defaulters`);
-        const defaulters = await res.json();
-        document.getElementById('pendingCount').innerText = `${defaulters.length} Flats`;
-        
-        const listDiv = document.getElementById('defaulterList');
-        if (defaulters.length === 0) {
-          listDiv.innerHTML = '<p class="p-4 text-center text-emerald-600 font-medium">All flats have paid maintenance for this month! 🎉</p>';
-        } else {
-          listDiv.innerHTML = defaulters.map(d => `
-            <div class="py-3 flex justify-between items-center">
-              <div>
-                <p class="font-bold text-slate-900">${d.flat_number} - ${d.owner_name}</p>
-                <p class="text-xs text-slate-500">Contact: ${d.contact_number || 'N/A'}</p>
-              </div>
-              <span class="px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-800 rounded-full">Unpaid</span>
+        <!-- Stat Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Inflow</p>
+                    <h3 id="statTotalIncome" class="text-2xl font-bold text-emerald-600 mt-1">₹0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="arrow-down-left" class="w-6 h-6"></i>
+                </div>
             </div>
-          `).join('');
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Outflow</p>
+                    <h3 id="statTotalExpense" class="text-2xl font-bold text-rose-600 mt-1">₹0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                    <i data-lucide="arrow-up-right" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Balance</p>
+                    <h3 id="statNetBalance" class="text-2xl font-bold text-slate-900 mt-1">₹0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Month Defaulters Section -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+                    <h2 class="font-bold text-slate-900 text-base">Pending Maintenance (Current Month)</h2>
+                </div>
+                <span id="defaulterCount" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">Checking dues...</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-100">
+                        <tr>
+                            <th class="px-5 py-3">Flat</th>
+                            <th class="px-5 py-3">Resident</th>
+                            <th class="px-5 py-3">Contact</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="defaultersTableBody" class="divide-y divide-slate-100 font-medium">
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-slate-400">Loading pending dues...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Unified Transactions Table -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="font-bold text-slate-900 text-base">Society Transaction Ledger</h2>
+                <button onclick="fetchData()" class="text-slate-500 hover:text-slate-800 text-sm font-medium flex items-center gap-1">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Refresh</span>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-100">
+                        <tr>
+                            <th class="px-5 py-3">Date</th>
+                            <th class="px-5 py-3">Type</th>
+                            <th class="px-5 py-3">Flat / Recipient</th>
+                            <th class="px-5 py-3">Category</th>
+                            <th class="px-5 py-3">Mode</th>
+                            <th class="px-5 py-3 text-right">Amount</th>
+                            <th class="px-5 py-3 text-right">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-slate-400">Loading transactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Record Income -->
+    <div id="incomeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Record Income</h3>
+                <button onclick="closeModal('incomeModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="incomeForm" onsubmit="handleIncomeSubmit(event)" class="mt-4 space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Select Flat</label>
+                    <select id="incomeFlatSelect" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Category</label>
+                    <select id="incomeCategory" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="Monthly Maintenance">Monthly Maintenance</option>
+                        <option value="Festival Contribution">Festival Contribution</option>
+                        <option value="Development Fund">Development Fund</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Amount (₹)</label>
+                    <input type="number" id="incomeAmount" required step="0.01" class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g. 1500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Payment Mode</label>
+                        <select id="incomeMode" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="UPI">UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Date</label>
+                        <input type="date" id="incomeDate" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Notes / Transaction ID</label>
+                    <input type="text" id="incomeNotes" class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Optional reference note">
+                </div>
+                <button type="submit" id="submitIncomeBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-sm">Save Income</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Record Expense -->
+    <div id="expenseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Record Expenditure</h3>
+                <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="expenseForm" onsubmit="handleExpenseSubmit(event)" class="mt-4 space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Category</label>
+                    <select id="expenseCategory" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none">
+                        <option value="Electricity (Common)">Electricity (Common)</option>
+                        <option value="Water Pump Maintenance">Water Pump Maintenance</option>
+                        <option value="Lift Maintenance">Lift Maintenance</option>
+                        <option value="Cleaning & Sweeping">Cleaning & Sweeping</option>
+                        <option value="Security Guard">Security Guard</option>
+                        <option value="Repairs & Plumbing">Repairs & Plumbing</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Amount (₹)</label>
+                    <input type="number" id="expenseAmount" required step="0.01" class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none" placeholder="e.g. 2000">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Paid To (Vendor / Person)</label>
+                    <input type="text" id="expensePaidTo" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none" placeholder="e.g. MSEB / Electrician">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Payment Mode</label>
+                        <select id="expenseMode" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none">
+                            <option value="UPI">UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Date</label>
+                        <input type="date" id="expenseDate" required class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Notes / Description</label>
+                    <input type="text" id="expenseNotes" class="w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none" placeholder="Optional notes">
+                </div>
+                <button type="submit" id="submitExpenseBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-sm">Save Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        const API_BASE = 'https://aishwarya-residency-api.onrender.com/api';
+        let flatsCache = [];
+        let transactionsCache = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('incomeDate').value = today;
+            document.getElementById('expenseDate').value = today;
+            fetchFlats();
+            fetchData();
+        });
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
         }
-      } catch (err) {
-        console.error('Error loading defaulters:', err);
-      }
-    }
 
-    async function loadData() {
-      try {
-        const res = await fetch(`${API_BASE}/transactions`);
-        currentTransactions = await res.json();
-        
-        let inc = 0, exp = 0;
-        const tbody = document.getElementById('transactionTable');
-        
-        if (currentTransactions.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">No records found. Add an entry using the buttons above.</td></tr>';
-        } else {
-          tbody.innerHTML = currentTransactions.map((tx, idx) => {
-            if (tx.type === 'income') inc += tx.amount;
-            if (tx.type === 'expense') exp += tx.amount;
-
-            return `
-              <tr class="hover:bg-slate-50">
-                <td class="p-3">${tx.date}</td>
-                <td class="p-3">
-                  <span class="px-2 py-0.5 rounded-full text-xs font-medium ${tx.type === 'income' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                    ${tx.type}
-                  </span>
-                </td>
-                <td class="p-3 font-medium text-slate-900">${tx.category}</td>
-                <td class="p-3">${tx.flatNumber !== '-' ? `${tx.flatNumber} (${tx.residentName})` : tx.residentName}</td>
-                <td class="p-3 text-slate-500">${tx.paymentMode}</td>
-                <td class="p-3 text-right font-semibold ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}">
-                  ${tx.type === 'income' ? '+' : '-'}₹${tx.amount.toLocaleString('en-IN')}
-                </td>
-                <td class="p-3 text-center">
-                  ${tx.type === 'income' ? `<button onclick="downloadReceipt(${idx})" class="text-blue-600 hover:underline text-xs font-semibold">PDF Receipt</button>` : '-'}
-                </td>
-              </tr>
-            `;
-          }).join('');
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
 
-        document.getElementById('totalIncome').innerText = `₹ ${inc.toLocaleString('en-IN')}`;
-        document.getElementById('totalExpense').innerText = `₹ ${exp.toLocaleString('en-IN')}`;
-        document.getElementById('netBalance').innerText = `₹ ${(inc - exp).toLocaleString('en-IN')}`;
+        async function fetchFlats() {
+            try {
+                const res = await fetch(`${API_BASE}/flats`);
+                if (!res.ok) throw new Error();
+                flatsCache = await res.json();
+                const select = document.getElementById('incomeFlatSelect');
+                select.innerHTML = '<option value="">-- Choose Flat --</option>' + 
+                    flatsCache.map(f => `<option value="${f.id}">${f.flat_number} - ${f.owner_name}</option>`).join('');
+            } catch (err) {
+                console.error("Failed to load flats", err);
+            }
+        }
 
-        loadDefaulters();
-      } catch (err) {
-        console.error('Error loading ledger data:', err);
-      }
-    }
+        async function fetchData() {
+            try {
+                const [txRes, defRes] = await Promise.all([
+                    fetch(`${API_BASE}/transactions`),
+                    fetch(`${API_BASE}/defaulters`)
+                ]);
+                
+                if (txRes.ok) {
+                    transactionsCache = await txRes.json();
+                    renderTransactions(transactionsCache);
+                    updateStats(transactionsCache);
+                }
+                
+                if (defRes.ok) {
+                    const defaulters = await defRes.json();
+                    renderDefaulters(defaulters);
+                }
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error fetching live data", err);
+            }
+        }
 
-    async function submitIncome(e) {
-      e.preventDefault();
-      const payload = {
-        flat_id: document.getElementById('incomeFlat').value,
-        category: document.getElementById('incomeCategory').value,
-        amount: parseFloat(document.getElementById('incomeAmount').value),
-        payment_mode: document.getElementById('incomeMode').value,
-        payment_date: document.getElementById('incomeDate').value,
-        notes: document.getElementById('incomeNotes').value
-      };
-      await fetch(`${API_BASE}/income`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      closeModal('incomeModal');
-      document.getElementById('incomeForm').reset();
-      loadData();
-    }
+        function updateStats(txs) {
+            let income = 0;
+            let expense = 0;
+            txs.forEach(t => {
+                if (t.type === 'income') income += Number(t.amount);
+                if (t.type === 'expense') expense += Number(t.amount);
+            });
+            document.getElementById('statTotalIncome').innerText = `₹${income.toLocaleString('en-IN')}`;
+            document.getElementById('statTotalExpense').innerText = `₹${expense.toLocaleString('en-IN')}`;
+            const net = income - expense;
+            const netEl = document.getElementById('statNetBalance');
+            netEl.innerText = `₹${net.toLocaleString('en-IN')}`;
+            netEl.className = `text-2xl font-bold mt-1 ${net >= 0 ? 'text-slate-900' : 'text-rose-600'}`;
+        }
 
-    async function submitExpense(e) {
-      e.preventDefault();
-      const payload = {
-        paid_to: document.getElementById('expensePaidTo').value,
-        category: document.getElementById('expenseCategory').value,
-        amount: parseFloat(document.getElementById('expenseAmount').value),
-        payment_mode: document.getElementById('expenseMode').value,
-        payment_date: document.getElementById('expenseDate').value,
-        notes: document.getElementById('expenseNotes').value
-      };
-      await fetch(`${API_BASE}/expense`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      closeModal('expenseModal');
-      document.getElementById('expenseForm').reset();
-      loadData();
-    }
+        function renderTransactions(txs) {
+            const tbody = document.getElementById('transactionsTableBody');
+            if (!tbody) return;
+            if (txs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No transactions recorded yet.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = txs.map(t => {
+                const isInc = t.type === 'income';
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-3.5 text-xs text-slate-500">${t.date}</td>
+                        <td class="px-5 py-3.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${isInc ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                ${isInc ? 'Income' : 'Expense'}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 font-semibold text-slate-800">${t.flatNumber && t.flatNumber !== '-' ? t.flatNumber + ' (' + t.residentName + ')' : t.residentName}</td>
+                        <td class="px-5 py-3.5 text-slate-600">${t.category}</td>
+                        <td class="px-5 py-3.5 text-xs text-slate-500">${t.paymentMode}</td>
+                        <td class="px-5 py-3.5 font-bold text-right ${isInc ? 'text-emerald-600' : 'text-rose-600'}">
+                            ${isInc ? '+' : '-'}₹${Number(t.amount).toLocaleString('en-IN')}
+                        </td>
+                        <td class="px-5 py-3.5 text-right">
+                            ${isInc ? `<button onclick="generateReceipt('${t.residentName}', '${t.flatNumber}', ${t.amount}, '${t.category}', '${t.date}', '${t.paymentMode}', '${t.id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF</button>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
 
-    function downloadReceipt(idx) {
-      const record = currentTransactions[idx];
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+        function renderDefaulters(defaulters) {
+            const tbody = document.getElementById('defaultersTableBody');
+            const countBadge = document.getElementById('defaulterCount');
+            if (!tbody) return;
 
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, 210, 26, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('AISHWARYA RESIDENCY', 105, 12, { align: 'center' });
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Maintenance & Society Accounts Ledger', 105, 18, { align: 'center' });
+            countBadge.innerText = `${defaulters.length} Pending`;
+            countBadge.className = defaulters.length === 0 ? "text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800" : "text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800";
 
-      doc.setTextColor(51, 51, 51);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`RECEIPT NO: AR-${record.id.toString().padStart(4, '0')}`, 14, 36);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Date: ${record.date}`, 155, 36);
+            if (defaulters.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-emerald-600 font-semibold">🎉 All flats have cleared society maintenance for this month!</td></tr>`;
+                return;
+            }
 
-      doc.autoTable({
-        startY: 42,
-        theme: 'plain',
-        body: [
-          ['Flat Number:', record.flatNumber, 'Payment Mode:', record.paymentMode],
-          ['Resident Name:', record.residentName, 'Category:', record.category]
-        ]
-      });
+            tbody.innerHTML = defaulters.map(d => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-3 font-bold text-slate-900">${d.flat_number}</td>
+                    <td class="px-5 py-3 text-slate-800">${d.owner_name}</td>
+                    <td class="px-5 py-3 text-slate-500">${d.contact_number || '-'}</td>
+                    <td class="px-5 py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-700">Dues Pending</span>
+                    </td>
+                    <td class="px-5 py-3 text-right">
+                        <button onclick="sendWhatsAppReminder('${d.owner_name}', '${d.flat_number}', '${d.contact_number}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Remind
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-      doc.autoTable({
-        startY: doc.lastAutoTable.finalY + 4,
-        head: [['Particulars', 'Amount (INR)']],
-        body: [[record.category, `Rs. ${Number(record.amount).toLocaleString('en-IN')}`]],
-        headStyles: { fillColor: [37, 99, 235], textColor: 255 }
-      });
+        // 1-Click WhatsApp Trigger
+        function sendWhatsAppReminder(name, flatNumber, phone) {
+            if (!phone) {
+                alert("No phone number registered for " + name);
+                return;
+            }
+            let cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+            
+            const message = `Hello ${name} Ji (${flatNumber}),\n\nThis is a friendly reminder regarding the pending society maintenance payment for *Aishwarya Residency* for this month.\n\nPlease clear the dues at your earliest convenience.\n\nThank you,\nManagement Committee\nAishwarya Residency`;
+            const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
 
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total Paid: Rs. ${Number(record.amount).toLocaleString('en-IN')}`, 130, finalY);
+        async function handleIncomeSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitIncomeBtn');
+            btn.disabled = true;
+            btn.innerText = "Saving...";
 
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
-      doc.text('Computer-generated receipt for Aishwarya Residency.', 14, finalY + 15);
+            const payload = {
+                flat_id: document.getElementById('incomeFlatSelect').value,
+                category: document.getElementById('incomeCategory').value,
+                amount: parseFloat(document.getElementById('incomeAmount').value),
+                payment_mode: document.getElementById('incomeMode').value,
+                payment_date: document.getElementById('incomeDate').value,
+                notes: document.getElementById('incomeNotes').value
+            };
 
-      doc.save(`Receipt_${record.flatNumber}_${record.id}.pdf`);
-    }
+            try {
+                const res = await fetch(`${API_BASE}/income`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeModal('incomeModal');
+                    document.getElementById('incomeForm').reset();
+                    document.getElementById('incomeDate').value = new Date().toISOString().split('T')[0];
+                    fetchData();
+                } else {
+                    alert("Error saving record");
+                }
+            } catch (err) {
+                alert("Server connection failed");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Save Income";
+            }
+        }
 
-    loadFlats();
-    loadData();
-  </script>
+        async function handleExpenseSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitExpenseBtn');
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            const payload = {
+                category: document.getElementById('expenseCategory').value,
+                amount: parseFloat(document.getElementById('expenseAmount').value),
+                paid_to: document.getElementById('expensePaidTo').value,
+                payment_mode: document.getElementById('expenseMode').value,
+                payment_date: document.getElementById('expenseDate').value,
+                notes: document.getElementById('expenseNotes').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/expense`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeModal('expenseModal');
+                    document.getElementById('expenseForm').reset();
+                    document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+                    fetchData();
+                } else {
+                    alert("Error saving record");
+                }
+            } catch (err) {
+                alert("Server connection failed");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Save Expense";
+            }
+        }
+
+        // PDF Generation
+        function generateReceipt(name, flat, amount, category, date, mode, id) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFillColor(30, 41, 59);
+            doc.rect(0, 0, 210, 32, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text("AISHWARYA RESIDENCY", 105, 14, { align: "center" });
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text("OFFICIAL MAINTENANCE RECEIPT", 105, 22, { align: "center" });
+
+            doc.setTextColor(51, 65, 85);
+            doc.setFontSize(10);
+            doc.text(`Receipt No: AR-${id || Date.now().toString().slice(-4)}`, 14, 45);
+            doc.text(`Date: ${date}`, 196, 45, { align: "right" });
+
+            doc.setDrawColor(226, 232, 240);
+            doc.line(14, 50, 196, 50);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Received From:", 14, 60);
+            doc.setFont("helvetica", "normal");
+            doc.text(`${name} (${flat})`, 14, 66);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Payment Particulars:", 14, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Category: ${category}`, 14, 86);
+            doc.text(`Mode of Payment: ${mode}`, 14, 92);
+
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, 105, 182, 20, 'F');
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(16, 185, 129);
+            doc.text(`Amount Paid: Rs. ${Number(amount).toLocaleString('en-IN')}/-`, 20, 118);
+
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text("Generated digitally by Aishwarya Residency Management Portal.", 105, 150, { align: "center" });
+            doc.save(`Receipt_${flat}_${date}.pdf`);
+        }
+    </script>
 </body>
 </html>
