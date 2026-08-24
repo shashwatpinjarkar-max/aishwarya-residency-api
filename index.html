@@ -137,10 +137,10 @@
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
                 <h2 class="font-bold text-slate-900 text-base">Society Transaction Ledger</h2>
                 <div class="flex items-center gap-2">
-                    <button onclick="exportToCSV()" class="text-slate-600 hover:text-slate-900 text-xs font-semibold px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5">
+                    <button onclick="exportToCSV()" class="text-slate-600 hover:text-slate-900 text-xs font-semibold px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
                     </button>
-                    <button onclick="fetchData()" class="text-slate-500 hover:text-slate-800 text-xs font-medium px-2 py-1.5 flex items-center gap-1">
+                    <button onclick="fetchData()" class="text-slate-500 hover:text-slate-800 text-xs font-medium px-2 py-1.5 flex items-center gap-1 active:scale-95 transition-all">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
@@ -195,7 +195,7 @@
             <div id="qrcode" class="flex justify-center my-3"></div>
             <p class="text-xs text-slate-500 font-medium">Scan with any UPI App (GPay / PhonePe / Paytm)</p>
             <div class="bg-slate-50 rounded-lg p-2.5 mt-3 text-xs text-slate-700 border border-slate-100 font-mono">
-                UPI ID: <span class="font-bold text-slate-900">society@upi</span>
+                UPI ID: <span class="font-bold text-slate-900">9881971319@axl</span>
             </div>
             <a id="upiIntentLink" href="#" class="mt-4 w-full inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-all shadow-sm">
                 Open UPI App Direct
@@ -307,7 +307,7 @@
     <!-- Script Application Logic -->
     <script>
         const API_BASE = 'https://aishwarya-residency-api.onrender.com/api';
-        const ADMIN_PIN = "1234"; // Change this 4-digit PIN for your committee
+        const ADMIN_PIN = "1234"; // Default 4-digit PIN for committee
         let pendingTargetModal = null;
         let flatsCache = [];
         let transactionsCache = [];
@@ -344,9 +344,9 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // UPI QR Modal Handler
+        // UPI QR Modal Handler (Configured with 9881971319@axl)
         function openUPIModal() {
-            const upiId = "society@upi"; // Replace with real Society UPI ID
+            const upiId = "9881971319@axl";
             const societyName = "Aishwarya Residency";
             const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(societyName)}&cu=INR`;
             
