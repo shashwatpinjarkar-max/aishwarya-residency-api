@@ -14,8 +14,7 @@ def get_db_connection():
         password=os.environ.get("TIDB_PASSWORD"),
         database=os.environ.get("TIDB_DATABASE", "test"),
         port=int(os.environ.get("TIDB_PORT", 4000)),
-        ssl_verify_cert=True,
-        ssl_ca=os.environ.get("TIDB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
+        ssl_verify_cert=False
     )
 
 @app.route('/', methods=['GET'])
