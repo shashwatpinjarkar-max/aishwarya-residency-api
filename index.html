@@ -4,12 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aishwarya Residency Portal</title>
+    
+    <!-- PWA & Mobile Web App Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aishwarya">
+    <link rel="apple-touch-icon" href="building.jpg">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- jsPDF for Receipt Generation -->
+    <!-- jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QR Code Generator CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -17,7 +30,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-16">
 
-    <!-- Header Banner with Building Photo -->
+    <!-- Header Banner -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -28,13 +41,17 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="openModal('incomeModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    <span>+ Income</span>
+                <button onclick="openUPIModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span>Pay UPI</span>
                 </button>
-                <button onclick="openModal('expenseModal')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                <button onclick="requestAdminAccess('incomeModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">+ Income</span>
+                </button>
+                <button onclick="requestAdminAccess('expenseModal')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
                     <i data-lucide="minus-circle" class="w-4 h-4"></i>
-                    <span>+ Expense</span>
+                    <span class="hidden sm:inline">+ Expense</span>
                 </button>
             </div>
         </div>
@@ -42,7 +59,18 @@
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-        <!-- Stat Cards -->
+        <!-- Notice Board -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start justify-between gap-3 text-amber-900">
+            <div class="flex items-start gap-3">
+                <i data-lucide="bell" class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <h4 class="font-bold text-sm">Notice Board</h4>
+                    <p class="text-xs sm:text-sm mt-0.5 text-amber-800">Monthly maintenance is due by the 10th of every month. Please use the Pay UPI option or direct bank transfer to settle pending balances.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
         <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
@@ -75,7 +103,7 @@
             </div>
         </section>
 
-        <!-- Current Month Defaulters Section -->
+        <!-- Defaulters Section -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
                 <div class="flex items-center gap-2">
@@ -104,14 +132,18 @@
             </div>
         </section>
 
-        <!-- Unified Transactions Table -->
+        <!-- Transaction Ledger Table -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
                 <h2 class="font-bold text-slate-900 text-base">Society Transaction Ledger</h2>
-                <button onclick="fetchData()" class="text-slate-500 hover:text-slate-800 text-sm font-medium flex items-center gap-1">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Refresh</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportToCSV()" class="text-slate-600 hover:text-slate-900 text-xs font-semibold px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+                    </button>
+                    <button onclick="fetchData()" class="text-slate-500 hover:text-slate-800 text-xs font-medium px-2 py-1.5 flex items-center gap-1">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-600">
@@ -137,9 +169,43 @@
 
     </main>
 
+    <!-- Modal: Admin PIN Lock -->
+    <div id="pinModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-6 shadow-xl relative text-center">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Admin Authentication</h3>
+            <p class="text-xs text-slate-500 mt-1 mb-4">Enter society PIN to record transactions</p>
+            <input type="password" id="adminPinInput" maxlength="4" placeholder="Enter PIN" class="w-full text-center tracking-widest text-lg font-bold border border-slate-200 rounded-lg py-2 focus:ring-2 focus:ring-indigo-500 outline-none mb-4">
+            <div class="flex gap-2">
+                <button onclick="closeModal('pinModal')" class="w-1/2 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg">Cancel</button>
+                <button onclick="verifyAdminPin()" class="w-1/2 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: UPI Payment QR -->
+    <div id="upiModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative text-center">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <h3 class="text-base font-bold text-slate-900">Pay Maintenance via UPI</h3>
+                <button onclick="closeModal('upiModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="qrcode" class="flex justify-center my-3"></div>
+            <p class="text-xs text-slate-500 font-medium">Scan with any UPI App (GPay / PhonePe / Paytm)</p>
+            <div class="bg-slate-50 rounded-lg p-2.5 mt-3 text-xs text-slate-700 border border-slate-100 font-mono">
+                UPI ID: <span class="font-bold text-slate-900">society@upi</span>
+            </div>
+            <a id="upiIntentLink" href="#" class="mt-4 w-full inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-all shadow-sm">
+                Open UPI App Direct
+            </a>
+        </div>
+    </div>
+
     <!-- Modal: Record Income -->
     <div id="incomeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-900">Record Income</h3>
                 <button onclick="closeModal('incomeModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -188,7 +254,7 @@
 
     <!-- Modal: Record Expense -->
     <div id="expenseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-900">Record Expenditure</h3>
                 <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -238,9 +304,11 @@
         </div>
     </div>
 
-    <!-- Application Logic -->
+    <!-- Script Application Logic -->
     <script>
         const API_BASE = 'https://aishwarya-residency-api.onrender.com/api';
+        const ADMIN_PIN = "1234"; // Change this 4-digit PIN for your committee
+        let pendingTargetModal = null;
         let flatsCache = [];
         let transactionsCache = [];
 
@@ -252,12 +320,45 @@
             fetchData();
         });
 
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+        function requestAdminAccess(targetModal) {
+            if (sessionStorage.getItem('isAdminAuth') === 'true') {
+                openModal(targetModal);
+            } else {
+                pendingTargetModal = targetModal;
+                document.getElementById('adminPinInput').value = '';
+                openModal('pinModal');
+            }
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+        function verifyAdminPin() {
+            const entered = document.getElementById('adminPinInput').value;
+            if (entered === ADMIN_PIN) {
+                sessionStorage.setItem('isAdminAuth', 'true');
+                closeModal('pinModal');
+                if (pendingTargetModal) openModal(pendingTargetModal);
+            } else {
+                alert("Incorrect PIN. Access Denied.");
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // UPI QR Modal Handler
+        function openUPIModal() {
+            const upiId = "society@upi"; // Replace with real Society UPI ID
+            const societyName = "Aishwarya Residency";
+            const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(societyName)}&cu=INR`;
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: upiUrl,
+                width: 170,
+                height: 170
+            });
+            document.getElementById('upiIntentLink').href = upiUrl;
+            openModal('upiModal');
         }
 
         async function fetchFlats() {
@@ -372,7 +473,6 @@
             `).join('');
         }
 
-        // 1-Click WhatsApp Trigger
         function sendWhatsAppReminder(name, flatNumber, phone) {
             if (!phone) {
                 alert("No phone number registered for " + name);
@@ -384,6 +484,23 @@
             const message = `Hello ${name} Ji (${flatNumber}),\n\nThis is a friendly reminder regarding the pending society maintenance payment for *Aishwarya Residency* for this month.\n\nPlease clear the dues at your earliest convenience.\n\nThank you,\nManagement Committee\nAishwarya Residency`;
             const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
+        }
+
+        // CSV Ledger Exporter
+        function exportToCSV() {
+            if (!transactionsCache.length) {
+                alert("No transactions available to export.");
+                return;
+            }
+            let csv = "ID,Date,Type,Flat_Or_Party,Category,Payment_Mode,Amount,Notes\n";
+            transactionsCache.forEach(t => {
+                csv += `"${t.id}","${t.date}","${t.type}","${t.flatNumber || t.residentName}","${t.category}","${t.paymentMode}","${t.amount}","${t.notes || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Aishwarya_Residency_Ledger_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
         }
 
         async function handleIncomeSubmit(e) {
@@ -460,7 +577,6 @@
             }
         }
 
-        // PDF Generation
         function generateReceipt(name, flat, amount, category, date, mode, id) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
