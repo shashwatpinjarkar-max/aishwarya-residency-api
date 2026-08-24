@@ -149,3 +149,27 @@ def get_defaulters():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+    @app.route('/api/notice', methods=['GET'])
+def get_notice():
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM notices ORDER BY id DESC LIMIT 1")
+    notice = cursor.fetchone()
+    cursor.close()
+    return jsonify(notice or {})
+
+@app.route('/api/notice', methods=['POST'])
+def post_notice():
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
+    file_url = data.get('file_url')
+    file_name = data.get('file_name')
+    
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO notices (title, description, file_url, file_name) VALUES (%s, %s, %s, %s)",
+        (title, description, file_url, file_name)
+    )
+    db.commit()
+    cursor.close()
+    return jsonify({"success": True, "message": "Notice updated successfully"})
