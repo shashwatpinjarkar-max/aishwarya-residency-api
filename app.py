@@ -7,7 +7,6 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-# TiDB Database Connection Function
 def get_db_connection():
     return mysql.connector.connect(
         host=os.environ.get("TIDB_HOST"),
@@ -19,11 +18,9 @@ def get_db_connection():
         ssl_ca=os.environ.get("TIDB_SSL_CA", "/etc/ssl/certs/ca-certificates.crt")
     )
 
-
 @app.route('/', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy", "service": "Aishwarya Residency API"}), 200
-
 
 @app.route('/api/flats', methods=['GET'])
 def get_flats():
@@ -38,13 +35,11 @@ def get_flats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
     try:
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
-        
         query = """
         SELECT 
             id, 
@@ -81,14 +76,12 @@ def get_transactions():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/api/defaulters', methods=['GET'])
 def get_defaulters():
     try:
         current_month = datetime.now().strftime('%Y-%m')
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
-        
         query = """
         SELECT f.id, f.flat_number, f.owner_name, f.contact_number 
         FROM flats f
@@ -107,7 +100,6 @@ def get_defaulters():
         return jsonify(defaulters), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/api/income', methods=['POST'])
 def add_income():
@@ -134,7 +126,6 @@ def add_income():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/api/expense', methods=['POST'])
 def add_expense():
     data = request.get_json()
@@ -160,7 +151,6 @@ def add_expense():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/api/notice', methods=['GET'])
 def get_notice():
     try:
@@ -173,7 +163,6 @@ def get_notice():
         return jsonify(notice or {}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/api/notice', methods=['POST'])
 def post_notice():
@@ -194,7 +183,6 @@ def post_notice():
         return jsonify({"success": True, "message": "Notice updated successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
